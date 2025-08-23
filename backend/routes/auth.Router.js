@@ -5,7 +5,7 @@ const {
   get_user,
   register_user,
 } = require("../controller/auth.controller");
-const authMiddleware = require("../middleware/authMiddleware");
+const authMiddleware = require("../middleware/auth.Middleware");
 
 router.get("/", (req, res) => {
   res.send("Hello from backend!");

@@ -31,10 +31,13 @@ const FileSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    password: {
+      type: String,
+    }, // optional password
     expiresAt: {
       type: Date,
       index: { expires: 0 },
-    },
+    }, // TTL index for auto-delete
     downloadCount: {
       type: Number,
       default: 0,

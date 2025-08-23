@@ -19,6 +19,7 @@ app.use(
 );
 
 app.use("/api/auth", require("./routes/auth.Router"));
+app.use("/api/files", require("./routes/file.Router"));
 
 app.use(errorHandler);
 

@@ -2,7 +2,13 @@ import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,13 +30,12 @@ export default function UploadZone() {
       if (!files.length) throw new Error("No files selected");
 
       const formData = new FormData();
-      formData.append("file", files[0]);
+      formData.append("myFile", files[0]);
       formData.append("expiry", expiry);
       if (password) formData.append("password", password);
 
-      // Use fetch directly for FormData
       try {
-        const data = await apiRequest("post", "/api/upload", formData);
+        const data = await apiRequest("post", "/api/files/upload", formData);
         return data;
       } catch (err) {
         throw new Error(err?.message || "Upload failed");
@@ -45,51 +50,34 @@ export default function UploadZone() {
       queryClient.invalidateQueries({ queryKey: ["/api/files"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
 
-      toast({
-        title: "Upload successful",
-        description: "Your file has been uploaded and is ready to share.",
-      });
+      toast.success("Upload successful! Your file is ready to share.");
     },
     onError: (error) => {
-      toast({
-        title: "Upload failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error(`❌ Upload failed: ${error.message}`);
     },
   });
 
-  const onDrop = useCallback(
-    (acceptedFiles) => {
-      const maxSize = 2 * 1024 * 1024 * 1024;
-      const validFiles = acceptedFiles.filter((file) => {
-        if (file.size > maxSize) {
-          toast({
-            title: "File too large",
-            description: `${file.name} exceeds the 2GB limit.`,
-            variant: "destructive",
-          });
-          return false;
-        }
-        return true;
-      });
-      setSelectedFiles(validFiles);
-    },
-    []
-  );
+  const onDrop = useCallback((acceptedFiles) => {
+    const maxSize = 2 * 1024 * 1024 * 1024; // 2GB
+    const validFiles = acceptedFiles.filter((file) => {
+      if (file.size > maxSize) {
+        toast.error(`${file.name} exceeds the 2GB limit.`);
+        return false;
+      }
+      return true;
+    });
+    setSelectedFiles(validFiles);
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     multiple: false,
   });
 
-  const handleUpload = () => {
+  const handleUpload = (e) => {
+    e.preventDefault();
     if (!selectedFiles.length) {
-      toast({
-        title: "No files selected",
-        description: "Please select a file to upload.",
-        variant: "destructive",
-      });
+      toast.error("No files selected. Please choose a file.");
       return;
     }
 
@@ -111,9 +99,12 @@ export default function UploadZone() {
   return (
     <>
       <section className="mb-12">
-        <div
+        {/* Dropzone */}
+        {selectedFiles.length === 0 ? (<div
           {...getRootProps()}
-          className={`bg-white rounded-xl shadow-sm border-2 border-dashed transition-colors p-12 text-center cursor-pointer ${isDragActive ? "border-primary bg-blue-50" : "border-gray-300 hover:border-primary"
+          className={`bg-white rounded-xl shadow-sm border-2 border-dashed transition-colors p-12 text-center cursor-pointer ${isDragActive
+            ? "border-primary bg-blue-50"
+            : "border-gray-300 hover:border-primary"
             }`}
         >
           <input {...getInputProps()} />
@@ -136,47 +127,53 @@ export default function UploadZone() {
             </span>
           </div>
         </div>
-
-        {selectedFiles.length > 0 && (
-          <Card className="mt-4">
-            <CardContent className="pt-6">
-              <h4 className="font-semibold text-gray-900 mb-4">Selected Files</h4>
-              {selectedFiles.map((file, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2"
-                >
-                  <div className="flex items-center space-x-3">
-                    <i className="fas fa-file text-gray-400"></i>
-                    <div>
-                      <p className="font-medium text-gray-900">{file.name}</p>
-                      <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
-                    </div>
+        ) : (<Card className="mt-4 shadow-sm">
+          <CardContent className="pt-6">
+            <h4 className="font-semibold text-gray-900 mb-4">Selected Files</h4>
+            {selectedFiles.map((file, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2"
+              >
+                <div className="flex items-center space-x-3">
+                  <i className="fas fa-file text-gray-400"></i>
+                  <div>
+                    <p className="font-medium text-gray-900">{file.name}</p>
+                    <p className="text-sm text-gray-500">
+                      {formatFileSize(file.size)}
+                    </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedFiles((files) => files.filter((_, i) => i !== index))}
-                  >
-                    <i className="fas fa-times"></i>
-                  </Button>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setSelectedFiles((files) =>
+                      files.filter((_, i) => i !== index)
+                    )
+                  }
+                >
+                  <i className="fas fa-times"></i>
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>)}
 
-        <Card className="mt-6">
+
+
+        {/* Upload Options */}
+        <Card className="mt-6 bg-gray-50 shadow-2xs">
           <CardContent className="pt-6">
             <h4 className="font-semibold text-gray-900 mb-4">Upload Options</h4>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="expiry">Expiry Date</Label>
                 <Select value={expiry} onValueChange={setExpiry}>
-                  <SelectTrigger id="expiry">
-                    <SelectValue />
+                  <SelectTrigger id="expiry" className="w-full bg-white">
+                    <SelectValue placeholder="Select expiry" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="w-[var(--radix-select-trigger-width)]">
                     <SelectItem value="1h">1 hour</SelectItem>
                     <SelectItem value="1d">1 day</SelectItem>
                     <SelectItem value="7d">7 days</SelectItem>
@@ -193,17 +190,20 @@ export default function UploadZone() {
                   placeholder="Optional password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white"
                 />
               </div>
             </div>
 
+            {/* Upload button */}
             <div className="mt-6 flex justify-between items-center">
               <div className="text-sm text-gray-500">
-                {selectedFiles.length} file{selectedFiles.length !== 1 ? "s" : ""} selected
+                {selectedFiles.length} file
+                {selectedFiles.length !== 1 ? "s" : ""} selected
               </div>
               <Button
                 onClick={handleUpload}
-                disabled={selectedFiles.length === 0 || uploadMutation.isLoading} // fixed
+                disabled={selectedFiles.length === 0 || uploadMutation.isLoading}
               >
                 {uploadMutation.isLoading ? (
                   <>
@@ -219,6 +219,7 @@ export default function UploadZone() {
         </Card>
       </section>
 
+      {/* Share Modal */}
       {uploadedFile && (
         <ShareModal
           isOpen={showShareModal}
