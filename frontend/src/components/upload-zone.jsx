@@ -42,7 +42,9 @@ export default function UploadZone() {
       }
     },
     onSuccess: (data) => {
-      setUploadedFile(data);
+      const shareUrl = `${window.location.protocol}//${window.location.host}/download/${data.id}`;
+
+      setUploadedFile({ ...data, shareUrl });
       setShowShareModal(true);
       setSelectedFiles([]);
       setPassword("");

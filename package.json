@@ -1,0 +1,26 @@
+{
+  "name": "filego",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "frontend": "cd frontend && npm install && npm run dev",
+    "backend": "cd backend && npm install && npm run dev",
+    "start": "npm i && concurrently \"npm run frontend\" \"npm run backend\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0xflame-7/FileGo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/0xflame-7/FileGo/issues"
+  },
+  "homepage": "https://github.com/0xflame-7/FileGo#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}
