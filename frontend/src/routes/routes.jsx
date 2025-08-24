@@ -46,9 +46,7 @@ function Router() {
 
       {/* Protected downloads */}
       <Route path="/download/:id">
-        <ProtectedLayout>
-          <Download />
-        </ProtectedLayout>
+        <Download />
       </Route>
 
       {/* Catch-all */}

@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export default function ShareModal({ isOpen, onClose, uploadedFile }) {
-
   const formatFileSize = (bytes) => {
     if (bytes === 0) return "0 B";
     const k = 1024;
@@ -21,10 +20,9 @@ export default function ShareModal({ isOpen, onClose, uploadedFile }) {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(uploadedFile.shareUrl).then(() => {
-      toast({
-        title: "Link copied",
-        description: "The share link has been copied to your clipboard.",
-      });
+      toast.success("Link copied to clipboard!");
+    }).catch(() => {
+      toast.error("Failed to copy link");
     });
   };
 
@@ -37,6 +35,7 @@ export default function ShareModal({ isOpen, onClose, uploadedFile }) {
       }`
     );
     window.open(`mailto:?subject=${subject}&body=${body}`);
+    toast("Opened your email client to share the file");
   };
 
   return (
@@ -78,7 +77,9 @@ export default function ShareModal({ isOpen, onClose, uploadedFile }) {
               </div>
               <div className="flex justify-between">
                 <span>File size:</span>
-                <span className="font-medium">{formatFileSize(uploadedFile.file.size)}</span>
+                <span className="font-medium">
+                  {formatFileSize(uploadedFile.file.size)}
+                </span>
               </div>
               {uploadedFile.file.expiry && (
                 <div className="flex justify-between">

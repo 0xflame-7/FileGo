@@ -1,7 +1,7 @@
 import Header from "@/components/header";
 import UploadZone from "@/components/upload-zone";
-// import FileList from "@/components/file-list";
-// import StatsOverview from "@/components/stats-overview";
+import FileList from "@/components/file-list";
+import StatsOverview from "@/components/stats-overview";
 
 export default function Home() {
   return (
@@ -18,8 +18,8 @@ export default function Home() {
         </div>
 
         <UploadZone />
-        {/* <FileList />
-        <StatsOverview /> */}
+        <FileList />
+        <StatsOverview />
       </main>
 
       <footer className="bg-white border-t border-gray-200 mt-16">
