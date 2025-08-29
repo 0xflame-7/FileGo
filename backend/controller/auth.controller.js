@@ -2,16 +2,21 @@ const wrapAsync = require("../utils/tryCatchWrapper");
 const User = require("../models/user.model");
 const jwt = require("jsonwebtoken");
 const cookieOptions = require("../config/cookie");
+const bcrypt = require("bcrypt");
 
 const login_user = wrapAsync(async (req, res) => {
   console.log("Login", req.body);
   const { email, password } = req.body;
 
-  // check if user exists
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select("+password");
+  if (!user) {
+    return res
+      .status(400)
+      .json({ isAuth: false, error: "Invalid credentials" });
+  }
 
-  // TODO: ⚠️ should hash Check password
-  if (!user || user.password !== password) {
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
     return res
       .status(400)
       .json({ isAuth: false, error: "Invalid credentials" });
@@ -21,10 +26,10 @@ const login_user = wrapAsync(async (req, res) => {
     expiresIn: "1h",
   });
 
-  req.user = user;
-
   res.cookie("authToken", token, cookieOptions);
-  res.json({ isAuth: true, user });
+  const { password: _, ...userData } = user.toObject();
+
+  res.json({ isAuth: true, user: userData });
 });
 
 const register_user = wrapAsync(async (req, res) => {
@@ -32,7 +37,6 @@ const register_user = wrapAsync(async (req, res) => {
 
   const { name, email, password, profilePic } = req.body;
 
-  // Check if user already exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     return res
@@ -40,14 +44,13 @@ const register_user = wrapAsync(async (req, res) => {
       .json({ isAuth: false, error: "User already exists" });
   }
 
-  // ⚠️ Hash password before saving
-  // const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   const newUser = new User({
     name,
     email,
-    password, // replace with hashedPassword
-    profilePic: profilePic || email, // fallback to identicon
+    password: hashedPassword,
+    profilePic,
   });
 
   const savedUser = await newUser.save();
@@ -57,7 +60,9 @@ const register_user = wrapAsync(async (req, res) => {
   });
 
   res.cookie("authToken", token, cookieOptions);
-  res.json({ isAuth: true, user: savedUser });
+  const { password: _, ...userData } = savedUser.toObject();
+
+  res.json({ isAuth: true, user: userData });
 });
 
 const logout_user = wrapAsync(async (req, res) => {
@@ -66,11 +71,11 @@ const logout_user = wrapAsync(async (req, res) => {
 });
 
 const get_user = wrapAsync(async (req, res) => {
-  // Check if req.user exists
   if (!req.user) {
     return res.status(401).json({ isAuth: false, error: "Unauthorized" });
   }
-  res.json(req.user);
+
+  res.json({ isAuth: true, user: req.user });
 });
 
 module.exports = {

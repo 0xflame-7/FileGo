@@ -28,12 +28,8 @@ const uploadFile = wrapAsync(async (req, res) => {
   const file = new File(fileData);
   await file.save();
 
-  // const shareUrl = `${req.protocol}://${req.get("host")}/download/${file.uuid}`;
-  // const shareUrl = `${window.location.protocol}//${window.location.host}/download/${file.uuid}`;
-
   res.json({
     id: file.uuid,
-    // shareUrl,
     file: {
       name: file.originalName,
       size: file.size,
