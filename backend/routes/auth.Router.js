@@ -7,10 +7,6 @@ const {
 } = require("../controller/auth.controller");
 const authMiddleware = require("../middleware/auth.Middleware");
 
-router.get("/", (req, res) => {
-  res.send("Hello from backend!");
-});
-
 router.post("/login", login_user);
 router.post("/register", register_user);
 router.get("/logout", logout_user);
