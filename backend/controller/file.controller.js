@@ -104,7 +104,3 @@ const getFile = wrapAsync(async (req, res) => {
 });
 
 module.exports = { uploadFile, getAllFiles, deleteFile, getFile };
-
-// TODO: ⚠️ should hash
-
-// TODO: ⚠️ should encrypt

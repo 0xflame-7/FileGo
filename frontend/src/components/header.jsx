@@ -7,7 +7,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import useAuth from "@/hooks/use-auth";
-import Jdenticon from "react-jdenticon";
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -38,7 +37,7 @@ export default function Header() {
                       />
                     ) : (
                       <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center ">
-                        <Jdenticon value={user?.username || "guest"} size={32} />
+                        <i className="fas fa-user-circle text-gray-600"></i>
                       </div>
                     )}
                     <span className="font-medium">

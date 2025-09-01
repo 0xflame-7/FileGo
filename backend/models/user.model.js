@@ -18,7 +18,7 @@ const UserSchema = new mongoose.Schema({
     select: false,
   },
   profilePic: {
-    type: String, // could be a URL or a base64 string
+    type: String,
     default: null,
   },
 });
