@@ -1,22 +1,17 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "react-hot-toast";
 
 import Router from "@/routes/routes";
 import AuthProvider from "./Provider/authProvider";
 
-const queryClient = new QueryClient();
-
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster richColors />
-          <Router />
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster position="bottom-right" reverseOrder={false} />
+        <Router />
+      </TooltipProvider>
+    </AuthProvider>
   );
 }
 

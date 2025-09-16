@@ -1,81 +1,81 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/api";
-import { toast } from "sonner";
+import { useEffect, useState, useCallback } from "react";
+import { toast } from "react-hot-toast";
 import { useLocation } from "wouter";
 import { AuthContext } from "@/context/authContext";
-
-
+import { apiRequest } from "@/lib/api";
 
 export default function AuthProvider({ children }) {
-  const queryClient = useQueryClient();
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [, setLocation] = useLocation();
 
-  console.log("AuthProvider");
+  // fetch user on mount
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const data = await apiRequest("GET", "/api/auth/user");
+        setUser(data.user);
+      } catch (err) {
+        console.log("Error From AuthProvider", { err });
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchUser();
+  }, []);
 
-  const {
-    data: user,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["/api/auth/user"],
-    queryFn: () => apiRequest("GET", "/api/auth/user"),
-    retry: false,
-    staleTime: 5 * 60 * 1000,
-  });
+  // login
+  const login = useCallback(
+    async (payload) => {
+      try {
+        const data = await apiRequest("POST", "/api/auth/login", payload);
+        setUser(data.user);
+        toast.success("Signed in successfully");
+        setLocation("/");
+      } catch (err) {
+        toast.error(err.message || "Login failed");
+      }
+    },
+    [setLocation]
+  );
 
-  const login = useMutation({
-    mutationFn: (data) => apiRequest("POST", "/api/auth/login", data),
-    onSuccess: (data) => {
-      queryClient.setQueryData(["/api/auth/user"], data.user);
-      toast.success("Welcome back!", { description: "Signed in successfully." });
+  // register
+  const register = useCallback(
+    async (payload) => {
+      try {
+        const data = await apiRequest("POST", "/api/auth/register", payload);
+        setUser(data.user);
+        toast.success("Account created");
+        setLocation("/");
+      } catch (err) {
+        toast.error(err.message || "Registration failed");
+      }
+    },
+    [setLocation]
+  );
+
+  // logout
+  const logout = useCallback(async () => {
+    try {
+      await apiRequest("GET", "/api/auth/logout");
+      setUser(null);
+      toast.success("Signed out");
       setLocation("/");
-    },
-    onError: (err) => {
-      toast.error("Login failed", {
-        description: err.message || "Something went wrong",
-      });
-    },
-  });
-
-  const register = useMutation({
-    mutationFn: (data) => apiRequest("POST", "/api/auth/register", data),
-    onSuccess: (data) => {
-      queryClient.setQueryData(["/api/auth/user"], data.user);
-      toast.success("Welcome!", { description: "Account created successfully." });
-      setLocation("/");
-    },
-    onError: (err) => {
-      toast.error("Registration failed", {
-        description: err.message || "Something went wrong",
-      });
-    },
-  });
-
-  const logout = useMutation({
-    mutationFn: () => apiRequest("GET", "/api/auth/logout"),
-    onSuccess: () => {
-      queryClient.setQueryData(["/api/auth/user"], null);
-      queryClient.clear();
-      toast.success("Signed out", { description: "You have been signed out." });
-      setLocation("/");
-    },
-    onError: (err) => {
-      toast.error("Sign out failed", {
-        description: err.message || "Something went wrong",
-      });
-    },
-  });
+    } catch (err) {
+      toast.error(err.message || "Logout failed");
+    }
+  }, [setLocation]);
 
   const value = {
     user,
     isLoading,
-    error,
     isAuthenticated: Boolean(user),
     login,
     register,
     logout,
   };
 
+  console.log(value);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-

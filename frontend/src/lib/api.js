@@ -1,7 +1,6 @@
-// lib/api.ts
 import axiosInstance from "../utils/axiosInstance";
 
-export async function apiRequest(method, url, data) {
+export async function apiRequest(method, url, data, extraConfig = {}) {
   const isFormData =
     typeof FormData !== "undefined" && data instanceof FormData;
 
@@ -10,6 +9,7 @@ export async function apiRequest(method, url, data) {
     url,
     data,
     headers: !isFormData && data ? { "Content-Type": "application/json" } : {},
+    ...extraConfig, // <-- allows responseType: "blob"
   });
 
   return res.data;

@@ -1,41 +1,66 @@
 import { useParams } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
 import { apiRequest } from "@/lib/api";
 import Header from "@/components/header";
-import axiosInstance from "@/utils/axiosInstance";
+import toast from "react-hot-toast";
+import DownloadModal from "@/components/download-model";
 
 export default function Download() {
   const { id } = useParams();
-  const [password, setPassword] = useState("");
+  const [fileInfo, setFileInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [downloading, setDownloading] = useState(false);
+  const [isModalOpen, setModalOpen] = useState(false);
 
-  const { data: fileInfo, isLoading, error } = useQuery({
-    queryKey: ["/api/files", id],
-    queryFn: () => apiRequest("GET", `/api/files/${id}`),
-    enabled: !!id,
-  });
+  const fetchFileInfo = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const data = await apiRequest("GET", `/api/files/${id}`);
+      setFileInfo(data);
+      setError(null);
+    } catch (err) {
+      setError(err);
+      setFileInfo(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
+  useEffect(() => {
+    fetchFileInfo();
 
-  const downloadMutation = useMutation({
-    mutationFn: async (data) => {
-      const config = data.password
-        ? { responseType: "blob" }
-        : { responseType: "blob" };
-      const body = data.password ? { password: data.password } : undefined;
-      const response = await axiosInstance.request({
-        method: data.password ? "POST" : "GET",
-        url: `/api/download/${data.id}`,
-        data: body,
-        ...config,
-      });
-      return response.data;
-    },
-    onSuccess: (blob) => {
+    const handler = () => fetchFileInfo();
+    document.addEventListener("fileDownloaded", handler);
+    document.addEventListener("fileUploaded", handler);
+
+    return () => {
+      document.removeEventListener("fileDownloaded", handler);
+      document.removeEventListener("fileUploaded", handler);
+    };
+  }, [fetchFileInfo]);
+
+  const handleDownload = async (password) => {
+    if (!id) return;
+
+    if (fileInfo?.hasPassword && !password) {
+      toast.error("Please enter the password to download this file.");
+      return;
+    }
+
+    try {
+      setDownloading(true);
+
+      const blob = await apiRequest(
+        fileInfo.hasPassword ? "POST" : "GET",
+        `/api/download/${id}`,
+        fileInfo.hasPassword ? { password } : undefined,
+        { responseType: "blob" }
+      );
+
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -46,28 +71,30 @@ export default function Download() {
       URL.revokeObjectURL(url);
 
       toast.success("Your file download has started successfully.");
-    },
-    onError: (error) => {
-      toast.error(error.message || "Download failed");
-    },
-  });
+      setModalOpen(false);
 
-
-  const handleDownload = () => {
-    if (!id) return;
-
-    if (fileInfo?.hasPassword && !password) {
-      toast.error("Please enter the password to download this file.");
-      return;
+      setFileInfo((prev) => ({
+        ...prev,
+        downloadCount: (prev.downloadCount || 0) + 1,
+      }));
+    } catch (err) {
+      toast.error(err.message || "Download failed");
+    } finally {
+      setDownloading(false);
     }
-
-    downloadMutation.mutate({
-      id,
-      password: fileInfo?.hasPassword ? password : undefined,
-    });
   };
 
-  if (isLoading) {
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+  };
+
+  const formatDate = (dateString) => new Date(dateString).toLocaleDateString();
+
+  if (loading) {
     return (
       <div className="font-inter bg-gray-50 min-h-screen">
         <Header />
@@ -96,9 +123,12 @@ export default function Download() {
                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <i className="fas fa-exclamation-triangle text-danger text-2xl"></i>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">File Not Found</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  File Not Found
+                </h3>
                 <p className="text-gray-600">
-                  This file may have expired, been deleted, or the link is invalid.
+                  This file may have expired, been deleted, or the link is
+                  invalid.
                 </p>
               </div>
             </CardContent>
@@ -107,18 +137,6 @@ export default function Download() {
       </div>
     );
   }
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 B";
-    const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString();
-  };
 
   return (
     <div className="font-inter bg-gray-50 min-h-screen">
@@ -139,58 +157,61 @@ export default function Download() {
               <div className="space-y-1 text-sm text-gray-600">
                 <div className="flex justify-between">
                   <span>File name:</span>
-                  <span className="font-medium">{fileInfo.name}</span>
+                  <span className="font-medium break-words max-w-[60%] text-right">
+                    {fileInfo.name}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>File size:</span>
-                  <span className="font-medium">{formatFileSize(fileInfo.size)}</span>
+                  <span className="font-medium">
+                    {formatFileSize(fileInfo.size)}
+                  </span>
                 </div>
                 {fileInfo.downloadCount !== undefined && (
                   <div className="flex justify-between">
                     <span>Downloads:</span>
-                    <span className="font-medium">{fileInfo.downloadCount}</span>
+                    <span className="font-medium">
+                      {fileInfo.downloadCount}
+                    </span>
                   </div>
                 )}
                 {fileInfo.expiresAt && (
                   <div className="flex justify-between">
                     <span>Expires:</span>
-                    <span className="font-medium">{formatDate(fileInfo.expiresAt)}</span>
+                    <span className="font-medium">
+                      {formatDate(fileInfo.expiresAt)}
+                    </span>
                   </div>
                 )}
               </div>
             </div>
 
-            {fileInfo.hasPassword && (
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleDownload()}
-                />
-              </div>
-            )}
+            {fileInfo.hasPassword ? (
+              <>
+                <Button
+                  onClick={() => setModalOpen(true)}
+                  className="w-full"
+                  disabled={downloading}
+                >
+                  {downloading ? "Downloading..." : "Download File"}
+                </Button>
 
-            <Button
-              onClick={handleDownload}
-              disabled={downloadMutation.isPending}
-              className="w-full"
-            >
-              {downloadMutation.isPending ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Downloading...
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-download mr-2"></i>
-                  Download File
-                </>
-              )}
-            </Button>
+                <DownloadModal
+                  isOpen={isModalOpen}
+                  onClose={() => setModalOpen(false)}
+                  onDownload={handleDownload}
+                  isLoading={downloading}
+                />
+              </>
+            ) : (
+              <Button
+                onClick={() => handleDownload("")}
+                className="w-full"
+                disabled={downloading}
+              >
+                {downloading ? "Downloading..." : "Download File"}
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>

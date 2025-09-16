@@ -1,20 +1,45 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiRequest } from "@/lib/api";
 
 export default function StatsOverview() {
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ["/api/stats"],
-    queryFn: () => apiRequest("GET", "/api/stats").then((data) => {
-      console.log("StatsOverview", data);
-      return data;
-    }),
-  });
+  const [stats, setStats] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchStats = async () => {
+      try {
+        setIsLoading(true);
+        const data = await apiRequest("GET", "/api/stats");
+        if (isMounted) setStats(data);
+      } catch (err) {
+        console.error("Failed to fetch stats:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+
+    const handler = () => fetchStats();
+    document.addEventListener("fileUploaded", handler);
+    document.addEventListener("fileDeleted", handler);
+
+    return () => {
+      isMounted = false;
+      document.removeEventListener("fileUploaded", handler);
+      document.removeEventListener("fileDeleted", handler);
+    };
+  }, []);
 
   if (isLoading) {
     return (
       <section className="mb-12">
-        <h3 className="text-2xl font-bold text-gray-900 mb-6">Usage Statistics</h3>
+        <h3 className="text-2xl font-bold text-gray-900 mb-6">
+          Usage Statistics
+        </h3>
         <div className="grid md:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <Card key={i}>
@@ -36,8 +61,10 @@ export default function StatsOverview() {
 
   return (
     <section className="mb-12">
-      <h3 className="text-2xl font-bold text-gray-900 mb-6">Usage Statistics</h3>
-      <div className="grid md:grid-cols-4 gap-6">
+      <h3 className="text-2xl font-bold text-gray-900 mb-6">
+        Usage Statistics
+      </h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
@@ -45,7 +72,9 @@ export default function StatsOverview() {
                 <i className="fas fa-upload text-primary text-xl"></i>
               </div>
             </div>
-            <h4 className="text-2xl font-bold text-gray-900">{stats.totalUploads}</h4>
+            <h4 className="text-2xl font-bold text-gray-900">
+              {stats.totalUploads}
+            </h4>
             <p className="text-sm text-gray-600">Total Uploads</p>
           </CardContent>
         </Card>
@@ -57,7 +86,9 @@ export default function StatsOverview() {
                 <i className="fas fa-download text-green-600 text-xl"></i>
               </div>
             </div>
-            <h4 className="text-2xl font-bold text-gray-900">{stats.totalDownloads}</h4>
+            <h4 className="text-2xl font-bold text-gray-900">
+              {stats.totalDownloads}
+            </h4>
             <p className="text-sm text-gray-600">Total Downloads</p>
           </CardContent>
         </Card>
@@ -69,7 +100,9 @@ export default function StatsOverview() {
                 <i className="fas fa-hdd text-purple-600 text-xl"></i>
               </div>
             </div>
-            <h4 className="text-2xl font-bold text-gray-900">{stats.storageUsed}</h4>
+            <h4 className="text-2xl font-bold text-gray-900">
+              {stats.storageUsed}
+            </h4>
             <p className="text-sm text-gray-600">Storage Used</p>
           </CardContent>
         </Card>
@@ -81,7 +114,9 @@ export default function StatsOverview() {
                 <i className="fas fa-clock text-orange-600 text-xl"></i>
               </div>
             </div>
-            <h4 className="text-2xl font-bold text-gray-900">{stats.activeFiles}</h4>
+            <h4 className="text-2xl font-bold text-gray-900">
+              {stats.activeFiles}
+            </h4>
             <p className="text-sm text-gray-600">Active Files</p>
           </CardContent>
         </Card>

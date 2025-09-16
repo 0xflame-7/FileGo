@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,28 +16,15 @@ import {
 } from "@/components/ui/form";
 import useAuth from "@/hooks/use-auth";
 
-const signInSchema = z.object({
-  email: z.email(),
-  password: z.string().min(6),
-});
-
-const signUpSchema = z.object({
-  name: z.string().min(2),
-  email: z.email(),
-  password: z.string().min(6),
-});
-
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const { login, register } = useAuth();
 
   const signInForm = useForm({
-    resolver: zodResolver(signInSchema),
     defaultValues: { email: "", password: "" },
   });
 
   const signUpForm = useForm({
-    resolver: zodResolver(signUpSchema),
     defaultValues: { name: "", email: "", password: "" },
   });
 
@@ -59,8 +44,12 @@ export default function AuthPage() {
             <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
               <div className="text-center p-4">
                 <Upload className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                <h3 className="font-semibold text-gray-900 mb-1">Easy Upload</h3>
-                <p className="text-sm text-gray-600">Drag & drop files up to 2GB</p>
+                <h3 className="font-semibold text-gray-900 mb-1">
+                  Easy Upload
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Drag & drop files up to 2GB
+                </p>
               </div>
               <div className="text-center p-4">
                 <Shield className="h-8 w-8 text-blue-600 mx-auto mb-2" />
@@ -96,9 +85,15 @@ export default function AuthPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs value={isSignUp ? "signup" : "signin"} className="space-y-4">
+              <Tabs
+                value={isSignUp ? "signup" : "signin"}
+                className="space-y-4"
+              >
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="signin" onClick={() => setIsSignUp(false)}>
+                  <TabsTrigger
+                    value="signin"
+                    onClick={() => setIsSignUp(false)}
+                  >
                     Sign In
                   </TabsTrigger>
                   <TabsTrigger value="signup" onClick={() => setIsSignUp(true)}>
@@ -110,14 +105,15 @@ export default function AuthPage() {
                 <TabsContent value="signin" className="space-y-4">
                   <Form {...signInForm}>
                     <form
-                      onSubmit={signInForm.handleSubmit((data) =>
-                        login.mutate(data)
-                      )}
+                      onSubmit={signInForm.handleSubmit(async (data) => {
+                        await login(data);
+                      })}
                       className="space-y-4"
                     >
                       <FormField
                         control={signInForm.control}
                         name="email"
+                        rules={{ required: "Email is required" }}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Email</FormLabel>
@@ -135,6 +131,13 @@ export default function AuthPage() {
                       <FormField
                         control={signInForm.control}
                         name="password"
+                        rules={{
+                          required: "Password is required",
+                          minLength: {
+                            value: 6,
+                            message: "At least 6 characters",
+                          },
+                        }}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Password</FormLabel>
@@ -149,12 +152,10 @@ export default function AuthPage() {
                           </FormItem>
                         )}
                       />
-                      <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={login.isPending}
-                      >
-                        {login.isPending ? "Signing in..." : "Sign In"}
+                      <Button type="submit" className="w-full">
+                        {signInForm.formState.isSubmitting || login.isPending
+                          ? "Signing in..."
+                          : "Sign In"}
                       </Button>
                     </form>
                   </Form>
@@ -164,19 +165,23 @@ export default function AuthPage() {
                 <TabsContent value="signup" className="space-y-4">
                   <Form {...signUpForm}>
                     <form
-                      onSubmit={signUpForm.handleSubmit((data) =>
-                        register.mutate(data)
-                      )}
+                      onSubmit={signUpForm.handleSubmit(async (data) => {
+                        await register(data);
+                      })}
                       className="space-y-4"
                     >
                       <FormField
                         control={signUpForm.control}
                         name="name"
+                        rules={{
+                          required: "Name is required",
+                          minLength: { value: 2, message: "Too short" },
+                        }}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Full Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="John Doe" {...field} />
+                              <Input placeholder="User Name" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -185,6 +190,7 @@ export default function AuthPage() {
                       <FormField
                         control={signUpForm.control}
                         name="email"
+                        rules={{ required: "Email is required" }}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Email</FormLabel>
@@ -202,6 +208,13 @@ export default function AuthPage() {
                       <FormField
                         control={signUpForm.control}
                         name="password"
+                        rules={{
+                          required: "Password is required",
+                          minLength: {
+                            value: 6,
+                            message: "At least 6 characters",
+                          },
+                        }}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Password</FormLabel>
@@ -216,12 +229,8 @@ export default function AuthPage() {
                           </FormItem>
                         )}
                       />
-                      <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={register.isPending}
-                      >
-                        {register.isPending
+                      <Button type="submit" className="w-full">
+                        {signUpForm.formState.isSubmitting || register.isPending
                           ? "Creating..."
                           : "Create Account"}
                       </Button>

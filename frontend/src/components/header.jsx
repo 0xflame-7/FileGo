@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import useAuth from "@/hooks/use-auth";
+import { Share2, UserCircle, ChevronDown, LogOut, Menu } from "lucide-react";
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -18,17 +19,20 @@ export default function Header() {
           <Link href="/">
             <div className="flex items-center space-x-3 cursor-pointer">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <i className="fas fa-share-alt text-white text-sm"></i>
+                <Share2 size={16} className="text-white" />
               </div>
               <h1 className="text-xl font-bold text-gray-900">FileShare</h1>
             </div>
           </Link>
 
           {!!user && (
-            <nav className="hidden md:flex items-center space-x-8">
+            <nav className=" md:flex items-center space-x-8">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-2">
+                  <Button
+                    variant="ghost"
+                    className="flex items-center space-x-2"
+                  >
                     {user?.profileImageUrl ? (
                       <img
                         src={user.profileImageUrl}
@@ -36,33 +40,25 @@ export default function Header() {
                         className="w-8 h-8 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center ">
-                        <i className="fas fa-user-circle text-gray-600"></i>
-                      </div>
+                      <UserCircle className="w-8 h-8 text-gray-600" />
                     )}
                     <span className="font-medium">
-                      {user?.name || user?.email || 'User'}
+                      {user?.name || user?.email || "User"}
                     </span>
-                    <i className="fas fa-chevron-down text-xs"></i>
+                    <ChevronDown size={14} className="text-gray-600" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => logout.mutate()}>
-                    <i className="fas fa-sign-out-alt mr-2"></i>
+                  <DropdownMenuItem onClick={logout}>
+                    <LogOut size={16} className="mr-2" />
                     Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-
             </nav>
           )}
-
-
-          <button className="md:hidden p-2 text-gray-600">
-            <i className="fas fa-bars"></i>
-          </button>
         </div>
       </div>
-    </header >
+    </header>
   );
 }

@@ -7,7 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 
 export default function ShareModal({ isOpen, onClose, uploadedFile }) {
   const formatFileSize = (bytes) => {
@@ -19,19 +19,27 @@ export default function ShareModal({ isOpen, onClose, uploadedFile }) {
   };
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(uploadedFile.shareUrl).then(() => {
-      toast.success("Link copied to clipboard!");
-    }).catch(() => {
-      toast.error("Failed to copy link");
-    });
+    navigator.clipboard
+      .writeText(uploadedFile.shareUrl)
+      .then(() => {
+        toast.success("Link copied to clipboard!");
+      })
+      .catch(() => {
+        toast.error("Failed to copy link");
+      });
   };
 
   const shareViaEmail = () => {
-    const subject = encodeURIComponent(`File shared: ${uploadedFile.file.name}`);
+    const subject = encodeURIComponent(
+      `File shared: ${uploadedFile.file.name}`
+    );
     const body = encodeURIComponent(
-      `I've shared a file with you using FileShare.\n\nFile: ${uploadedFile.file.name}\nSize: ${formatFileSize(
-        uploadedFile.file.size
-      )}\n\nDownload link: ${uploadedFile.shareUrl}\n\n${uploadedFile.file.hasPassword ? "This file is password protected." : ""
+      `I've shared a file with you using FileShare.\n\nFile: ${
+        uploadedFile.file.name
+      }\nSize: ${formatFileSize(uploadedFile.file.size)}\n\nDownload link: ${
+        uploadedFile.shareUrl
+      }\n\n${
+        uploadedFile.file.hasPassword ? "This file is password protected." : ""
       }`
     );
     window.open(`mailto:?subject=${subject}&body=${body}`);
@@ -45,7 +53,9 @@ export default function ShareModal({ isOpen, onClose, uploadedFile }) {
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <i className="fas fa-check text-green-600 text-2xl"></i>
           </div>
-          <DialogTitle className="text-xl">File Uploaded Successfully!</DialogTitle>
+          <DialogTitle className="text-xl">
+            File Uploaded Successfully!
+          </DialogTitle>
           <p className="text-gray-600 mt-2">
             Your file is ready to share. Use the link below:
           </p>
@@ -62,7 +72,11 @@ export default function ShareModal({ isOpen, onClose, uploadedFile }) {
                 value={uploadedFile.shareUrl}
                 className="flex-1 rounded-r-none bg-gray-50"
               />
-              <Button onClick={copyToClipboard} className="rounded-l-none" type="button">
+              <Button
+                onClick={copyToClipboard}
+                className="rounded-l-none"
+                type="button"
+              >
                 <i className="fas fa-copy"></i>
               </Button>
             </div>
@@ -84,7 +98,9 @@ export default function ShareModal({ isOpen, onClose, uploadedFile }) {
               {uploadedFile.file.expiry && (
                 <div className="flex justify-between">
                   <span>Expires:</span>
-                  <span className="font-medium">{uploadedFile.file.expiry}</span>
+                  <span className="font-medium">
+                    {uploadedFile.file.expiry}
+                  </span>
                 </div>
               )}
               <div className="flex justify-between">
