@@ -77,7 +77,10 @@ const deleteFile = wrapAsync(async (req, res) => {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  await File.findByIdAndDelete(file._id);
+  // await File.findByIdAndDelete(file._id);
+  file.isActive = false;
+  await file.save();
+
   res.json({ message: "File deleted successfully" });
 });
 

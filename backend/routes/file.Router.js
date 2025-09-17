@@ -1,15 +1,14 @@
 const {
-  uploadFile,
+  getUploadUrl,
   getAllFiles,
-  deleteFile,
   getFile,
-} = require("../controller/file.controller");
+  deleteFile,
+} = require("../controller/s3.controller");
 const authMiddleware = require("../middleware/auth.Middleware");
-const upload = require("../middleware/file.middleware");
 
 const router = require("express").Router();
 
-router.post("/upload", authMiddleware, upload, uploadFile);
+router.post("/upload-url", authMiddleware, getUploadUrl);
 router.get("/", authMiddleware, getAllFiles);
 router.get("/:id", getFile);
 router.delete("/:id", authMiddleware, deleteFile);

@@ -2,15 +2,9 @@ const File = require("../models/file.model");
 const wrapAsync = require("../utils/tryCatchWrapper");
 const path = require("path");
 const fs = require("fs");
+const formatBytes = require("../utils/helper");
 
 // Get stats (user-specific)
-function formatBytes(bytes) {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-}
 
 const getStats = wrapAsync(async (req, res) => {
   const userId = req.user._id;

@@ -6,11 +6,7 @@ const FileSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    filename: {
-      type: String,
-      required: true,
-    },
-    path: {
+    s3Key: {
       type: String,
       required: true,
     },
