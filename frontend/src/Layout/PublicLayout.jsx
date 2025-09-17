@@ -5,7 +5,6 @@ import { Redirect } from "wouter";
 export default function PublicLayout({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
 
-  console.log("PublicLayout");
   if (isLoading) {
     return <div>Loading...</div>;
   }

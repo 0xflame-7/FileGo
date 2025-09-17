@@ -69,8 +69,6 @@ export default function UploadZone() {
         toast.error("Failed to get upload URL");
       }
 
-      console.log({ uploadUrl, fileMeta });
-
       // Step 2: Upload directly to S3
       await fetch(uploadUrl, {
         method: "PUT",
@@ -85,7 +83,6 @@ export default function UploadZone() {
 
       setUploadedFile({ file: fileMeta, shareUrl });
       setShowShareModal(true);
-      console.log("uploadedFile", uploadedFile);
       setSelectedFiles([]);
       setPassword("");
       toast.success("Upload successful! Your file is ready to share.");

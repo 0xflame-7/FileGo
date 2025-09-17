@@ -15,7 +15,7 @@ export default function StatsOverview() {
         const data = await apiRequest("GET", "/api/stats");
         if (isMounted) setStats(data);
       } catch (err) {
-        console.error("Failed to fetch stats:", err);
+        toast.error(`Failed to load stats: ${err.message}`);
       } finally {
         if (isMounted) setIsLoading(false);
       }

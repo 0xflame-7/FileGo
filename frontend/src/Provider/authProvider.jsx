@@ -16,7 +16,7 @@ export default function AuthProvider({ children }) {
         const data = await apiRequest("GET", "/api/auth/user");
         setUser(data.user);
       } catch (err) {
-        console.log("Error From AuthProvider", { err });
+        toast.error(err.message || "Failed to fetch user");
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -76,6 +76,5 @@ export default function AuthProvider({ children }) {
     logout,
   };
 
-  console.log(value);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -14,8 +14,6 @@ import useAuth from "@/hooks/use-auth";
 function Router() {
   const { isLoading, isAuthenticated } = useAuth();
 
-  console.log("Router");
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">

@@ -15,9 +15,6 @@ const getUploadUrl = wrapAsync(async (req, res) => {
   const uuid = randomUUID();
   const s3Key = `${req.user._id}/${uuid}-${name}`;
 
-  console.log("getUploadUrl");
-  console.log(req.body);
-
   // Generate presigned URL
   const command = new PutObjectCommand({
     Bucket: process.env.AWS_BUCKET_NAME,
@@ -41,8 +38,6 @@ const getUploadUrl = wrapAsync(async (req, res) => {
     expiresAt: parsedExpiry,
   });
 
-  console.log({ file, uploadUrl });
-
   const returnObj = {
     id: file.uuid,
     uploadUrl,
@@ -53,8 +48,6 @@ const getUploadUrl = wrapAsync(async (req, res) => {
       hasPassword: Boolean(file.password),
     },
   };
-
-  console.log(returnObj);
 
   res.json(returnObj);
 });

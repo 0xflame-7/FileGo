@@ -5,7 +5,6 @@ const cookieOptions = require("../config/cookie");
 const bcrypt = require("bcrypt");
 
 const login_user = wrapAsync(async (req, res) => {
-  console.log("Login", req.body);
   const { email, password } = req.body;
 
   const user = await User.findOne({ email }).select("+password");
@@ -33,8 +32,6 @@ const login_user = wrapAsync(async (req, res) => {
 });
 
 const register_user = wrapAsync(async (req, res) => {
-  console.log("Register", req.body);
-
   const { name, email, password, profilePic } = req.body;
 
   const existingUser = await User.findOne({ email });
