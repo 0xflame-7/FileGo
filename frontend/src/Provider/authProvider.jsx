@@ -14,9 +14,10 @@ export default function AuthProvider({ children }) {
     async function fetchUser() {
       try {
         const data = await apiRequest("GET", "/api/auth/user");
+        console.log(`User Fetch: ${data}`);
         setUser(data.user);
       } catch (err) {
-        toast.error(err.message || "Failed to fetch user");
+        toast.error(`${err.message} User not found` || "Failed to fetch user");
         setUser(null);
       } finally {
         setIsLoading(false);

@@ -25,7 +25,7 @@ const login_user = wrapAsync(async (req, res) => {
     expiresIn: "1h",
   });
 
-  res.cookie("authToken", token, cookieOptions);
+  res.cookie("authToken", token, { ...cookieOptions, maxAge: 1000 * 60 * 60 });
   const { password: _, ...userData } = user.toObject();
 
   res.json({ isAuth: true, user: userData });
@@ -56,14 +56,14 @@ const register_user = wrapAsync(async (req, res) => {
     expiresIn: "1h",
   });
 
-  res.cookie("authToken", token, cookieOptions);
+  res.cookie("authToken", token, { ...cookieOptions, maxAge: 1000 * 60 * 60 });
   const { password: _, ...userData } = savedUser.toObject();
 
   res.json({ isAuth: true, user: userData });
 });
 
 const logout_user = wrapAsync(async (req, res) => {
-  res.clearCookie("authToken");
+  res.clearCookie("authToken", cookieOptions);
   res.json({ isAuth: false });
 });
 
