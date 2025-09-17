@@ -17,7 +17,7 @@ export default function AuthProvider({ children }) {
         console.log(`User Fetch: ${data}`);
         setUser(data.user);
       } catch (err) {
-        toast.error(`${err.message} User not found` || "Failed to fetch user");
+        toast.error(`${err} User not found` || "Failed to fetch user");
         setUser(null);
       } finally {
         setIsLoading(false);
