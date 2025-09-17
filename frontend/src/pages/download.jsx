@@ -54,21 +54,20 @@ export default function Download() {
     try {
       setDownloading(true);
 
-      const blob = await apiRequest(
-        fileInfo.hasPassword ? "POST" : "GET",
-        `/api/download/${id}`,
-        fileInfo.hasPassword ? { password } : undefined,
-        { responseType: "blob" }
+      // Call POST /download-url/:id
+      const { downloadUrl } = await apiRequest(
+        "POST",
+        `/api/download-url/${id}`,
+        fileInfo.hasPassword ? { password } : undefined
       );
 
-      const url = URL.createObjectURL(blob);
+      // Trigger browser download
       const a = document.createElement("a");
-      a.href = url;
+      a.href = downloadUrl;
       a.download = fileInfo?.name || "download";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
 
       toast.success("Your file download has started successfully.");
       setModalOpen(false);

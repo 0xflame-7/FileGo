@@ -8,21 +8,28 @@ const { randomUUID } = require("crypto");
 const s3 = require("../config/s3");
 const File = require("../models/file.model");
 const wrapAsync = require("../utils/tryCatchWrapper");
-const { formatBytes } = require("../utils/helper");
+const { formatBytes, parseUploadOptions } = require("../utils/helper");
 
 const getUploadUrl = wrapAsync(async (req, res) => {
-  const { name, type, size, expiresAt, password } = req.body;
+  const { name, type, size, expiresAt: expiry, password } = req.body;
   const uuid = randomUUID();
   const s3Key = `${req.user._id}/${uuid}-${name}`;
 
+  console.log("getUploadUrl");
+  console.log(req.body);
+
+  // Generate presigned URL
   const command = new PutObjectCommand({
     Bucket: process.env.AWS_BUCKET_NAME,
     Key: s3Key,
     ContentType: type,
   });
-
   const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 60 });
 
+  // Parse expiry date
+  const parsedExpiry = parseUploadOptions(expiry);
+
+  // Save file record in DB
   const file = await File.create({
     originalName: name,
     s3Key,
@@ -31,24 +38,30 @@ const getUploadUrl = wrapAsync(async (req, res) => {
     uploader: req.user._id,
     mimeType: type,
     password,
-    expiresAt,
+    expiresAt: parsedExpiry,
   });
 
-  res.json({
+  console.log({ file, uploadUrl });
+
+  const returnObj = {
     id: file.uuid,
     uploadUrl,
     file: {
       name: file.originalName,
       size: file.size,
-      expiresAt: file.expiresAt,
+      expiry: expiry,
       hasPassword: Boolean(file.password),
     },
-  });
+  };
+
+  console.log(returnObj);
+
+  res.json(returnObj);
 });
 
 const downloadFileUrl = wrapAsync(async (req, res) => {
   const { id } = req.params;
-  const { password } = req.body;
+  const { password } = req.body || {};
 
   // Check if file exists
   const file = await File.findOne({ uuid: id, isActive: true });
@@ -176,7 +189,6 @@ const getFile = wrapAsync(async (req, res) => {
 
   const file = await File.findOne({
     uuid: id,
-    uploader: req.user._id,
     isActive: true,
   });
   if (!file) {

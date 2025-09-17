@@ -49,17 +49,43 @@ export default function UploadZone() {
 
     setIsUploading(true);
 
-    const formData = new FormData();
-    formData.append("myFile", selectedFiles[0]);
-    formData.append("expiry", expiry);
-    if (password) formData.append("password", password);
-
     try {
-      const data = await apiRequest("post", "/api/files/upload", formData);
-      const shareUrl = `${window.location.protocol}//${window.location.host}/download/${data.id}`;
+      const file = selectedFiles[0];
 
-      setUploadedFile({ ...data, shareUrl });
+      // Step 1: Get presigned upload URL
+      const {
+        id,
+        uploadUrl,
+        file: fileMeta,
+      } = await apiRequest("post", "/api/files/upload-url", {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        expiresAt: expiry,
+        password: password || undefined,
+      });
+
+      if (!uploadUrl) {
+        toast.error("Failed to get upload URL");
+      }
+
+      console.log({ uploadUrl, fileMeta });
+
+      // Step 2: Upload directly to S3
+      await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type,
+        },
+        body: file,
+      });
+
+      // Step 3: Construct share URL
+      const shareUrl = `${window.location.origin}/download/${id}`;
+
+      setUploadedFile({ file: fileMeta, shareUrl });
       setShowShareModal(true);
+      console.log("uploadedFile", uploadedFile);
       setSelectedFiles([]);
       setPassword("");
       toast.success("Upload successful! Your file is ready to share.");
