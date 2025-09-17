@@ -81,7 +81,7 @@ export default function UploadZone() {
       });
 
       // Step 3: Construct share URL
-      const shareUrl = `${window.location.origin}/download/${id}`;
+      const shareUrl = `${import.meta.env.VITE_FRONTEND_URL}/download/${id}`;
 
       setUploadedFile({ file: fileMeta, shareUrl });
       setShowShareModal(true);

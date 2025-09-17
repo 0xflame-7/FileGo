@@ -9,7 +9,7 @@ export async function apiRequest(method, url, data, extraConfig = {}) {
     url,
     data,
     headers: !isFormData && data ? { "Content-Type": "application/json" } : {},
-    ...extraConfig, // <-- allows responseType: "blob"
+    ...extraConfig,
   });
 
   return res.data;

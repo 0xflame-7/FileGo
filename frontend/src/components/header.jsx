@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import useAuth from "@/hooks/use-auth";
-import { Share2, UserCircle, ChevronDown, LogOut, Menu } from "lucide-react";
+import { Share2, UserCircle, ChevronDown, LogOut } from "lucide-react";
 
 export default function Header() {
   const { user, logout } = useAuth();

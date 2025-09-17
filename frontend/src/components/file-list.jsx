@@ -54,7 +54,7 @@ export default function FileList() {
 
   // Copy link
   const copyLink = (fileId) => {
-    const link = `${window.location.origin}/download/${fileId}`;
+    const link = `${import.meta.env.VITE_FRONTEND_URL}/download/${fileId}`;
     navigator.clipboard.writeText(link).then(() => {
       toast.success("Download link copied to clipboard");
     });
